@@ -38,7 +38,6 @@ fixtures_df.to_csv('fixture_info.csv', index=False)
 
 print('Fixture data saved to fixture_info.csv')
 
-
 # Load the fixture data from the CSV file
 fixtures_df = pd.read_csv('fixture_info.csv')
 
@@ -50,7 +49,6 @@ next_gameweek = upcoming_fixtures['event'].min()
 
 print(f"The next gameweek is: {next_gameweek}")
 
-
 # Filter fixtures for the next gameweek only
 fixtures_next_gameweek = fixtures_df[fixtures_df['event'] == next_gameweek]
 
@@ -60,7 +58,6 @@ fixtures_next_gameweek.to_csv('fixtures_next_gameweek.csv', index=False)
 print('Fixture data for next gameweek saved to fixtures_next_gameweek.csv')
 
 """now starting to make the fixture difficulty modifier"""
-
 
 team_difficulty_dict = {}
 for index, row in fixtures_next_gameweek.iterrows():
@@ -83,8 +80,6 @@ difficulty_multiplier = {
     4: 0.9,
     5: 0.8   # hardest
 }
-
-
 
 def calculate_expected_points(player_row):
   """Calculates expected points based on various factors."""
@@ -128,7 +123,7 @@ def calculate_expected_points(player_row):
 
   # Calculate games played (approximation) only if minutes are above a threshold
   min_minutes = 200 # Example threshold - adjust as needed
-  if player_row['minutes'] > min_minutes:
+  if player_row['minutes'] > 1:
     games_played = player_row['minutes'] / 90
   else:
     games_played = 1  # Avoid division by zero and prevent skewing
@@ -138,7 +133,7 @@ def calculate_expected_points(player_row):
       (player_row['goals_scored'] / games_played) * goal_points +
       (player_row['assists'] / games_played) * assist_points +
       (player_row['clean_sheets'] / games_played) * clean_sheet_points +
-      player_row['minutes'] * 0.01  # Basic playing time contribution
+      (player_row['minutes'] / games_played) * 0.01  # Basic playing time contribution
   )
 
   # Adjust for fixture difficulty
@@ -150,66 +145,24 @@ def calculate_expected_points(player_row):
 
   return expected_points
 
-# Apply the function to calculate expected points for each player
+# Apply the calculate_expected_points function to each player row
 fpl_data['expected_points'] = fpl_data.apply(calculate_expected_points, axis=1)
 
-# Sort players by expected points
-sorted_by_expected_points = fpl_data.sort_values('expected_points', ascending=False)
+# Rename 'id' column to 'player_id'
+fpl_data = fpl_data.rename(columns={'id': 'player_id'})
 
-# Get all players by expected points
-all_players_expected_points = sorted_by_expected_points
+# Merge player data with fixture data based on team ID
+all_players_expected_points = pd.merge(fpl_data, fixtures_next_gameweek, left_on='team', right_on='team_h', how='left')
 
-print("All Players by Expected Points:")
-print(all_players_expected_points[['web_name', 'expected_points']].to_string())
+# Filter players based on minutes played threshold
+min_minutes_threshold = (next_gameweek * 90) / 2
 
+# Access the 'minutes' column from the correct DataFrame (fpl_data)
+filtered_players = all_players_expected_points[fpl_data['minutes'] > min_minutes_threshold]
 
+# Sort players by expected points in descending order
+sorted_players = filtered_players.sort_values('expected_points', ascending=False)
 
-# Filter players based on chance_of_playing_this_round
-filtered_players = fpl_data[(fpl_data['chance_of_playing_this_round'] >= 75) | (fpl_data['chance_of_playing_this_round'].isnull())]
-
-# Sort the filtered players by expected points
-sorted_filtered_players = filtered_players.sort_values('expected_points', ascending=False)
-
-# Print the filtered and sorted players
-print("Players with chance_of_playing_this_round >= 75 or NULL, sorted by expected points:")
-print(sorted_filtered_players[['web_name', 'expected_points', 'chance_of_playing_this_round']].to_string())
-
-
-
-import matplotlib.pyplot as plt
-
-# Filter players based on chance_of_playing_this_round
-filtered_players = fpl_data[(fpl_data['chance_of_playing_this_round'] >= 75) ]
-
-# Sort the filtered players by expected points
-sorted_filtered_players = filtered_players.sort_values('expected_points', ascending=False)
-
-# Get the top 5 players
-top_5_players = sorted_filtered_players.head(5)
-
-# Create a bar graph
-plt.figure(figsize=(10, 6))
-plt.bar(top_5_players['web_name'], top_5_players['expected_points'])
-plt.xlabel('Player Name')
-plt.ylabel('Expected Points')
-plt.title('Top 5 Players with >= 75% Chance of Starting =')
-plt.xticks(rotation=45, ha='right')
-plt.tight_layout()
-plt.show()
-
-
-
-
-
-# Get the top 5 players based on expected points
-top_5_players = all_players_expected_points.nlargest(5, 'expected_points')
-
-# Create a bar chart
-plt.figure(figsize=(10, 6))
-plt.bar(top_5_players['web_name'], top_5_players['expected_points'])
-plt.xlabel('Player Name')
-plt.ylabel('Expected Points')
-plt.title('Top 5 Players for Next Gameweek')
-plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels for better readability
-plt.tight_layout()
-plt.show()
+# Print the filtered players with expected points for the next gameweek
+print(f"\nPlayers with Expected Points for Next Gameweek ({next_gameweek}):")
+print(sorted_players[['web_name', 'expected_points']].to_string())
