@@ -1,0 +1,11 @@
+code,event,finished,finished_provisional,id,kickoff_time,minutes,provisional_start_time,started,team_a,team_a_score,team_h,team_h_score,stats,team_h_difficulty,team_a_difficulty,pulse_id
+2444565,10,False,False,96,2024-11-02T12:30:00Z,0,False,False,1,,15,,[],5,4,115922
+2444560,10,False,False,91,2024-11-02T15:00:00Z,0,False,False,13,,3,,[],5,3,115917
+2444562,10,False,False,93,2024-11-02T15:00:00Z,0,False,False,11,,10,,[],2,2,115919
+2444563,10,False,False,94,2024-11-02T15:00:00Z,0,False,False,5,,12,,[],2,5,115920
+2444566,10,False,False,97,2024-11-02T15:00:00Z,0,False,False,19,,16,,[],2,2,115923
+2444567,10,False,False,98,2024-11-02T15:00:00Z,0,False,False,8,,17,,[],2,2,115924
+2444569,10,False,False,100,2024-11-02T17:30:00Z,0,False,False,7,,20,,[],2,2,115926
+2444568,10,False,False,99,2024-11-03T14:00:00Z,0,False,False,2,,18,,[],3,4,115925
+2444564,10,False,False,95,2024-11-03T16:30:00Z,0,False,False,6,,14,,[],4,3,115921
+2444561,10,False,False,92,2024-11-04T20:00:00Z,0,False,False,4,,9,,[],2,3,115918
